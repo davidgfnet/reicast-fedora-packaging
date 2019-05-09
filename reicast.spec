@@ -1,15 +1,12 @@
-%define appname %{name}
-%define debug_package %{nil}
+%global appname %{name}
 
 Name:       reicast
 Version:    8.1
 Release:    1%{?dist}
 Summary:    Multiplaform Dreamcast emulator
-Group:      Applications/Emulators
 License:    GPLv2
 URL:        https://reicast.com
 Source0:    https://github.com/reicast/reicast-emulator/archive/r%{version}.tar.gz
-Packager:   davidgfnet
 
 # It can run on ARM and potentially any platform without JIT though.
 ExclusiveArch:	x86_64 i686
@@ -30,31 +27,29 @@ Reicast primarily aims for speed and to run on android. It is derived from the n
 Naturally, there are many other Dreamcast emulation projects, each with its own goals and priorities. Here's a non-exaustive list: Makaron, Demul, Redream, nullDC. If Reicast doesn't work for you, you may want to check these out.
 
 %prep
-%setup -n reicast-emulator-r%{version}
+%setup -qn reicast-emulator-r%{version}
 
 %build
 # Patch joystick tool, seems it is ambiguous about python version
-sed -i 's/\/usr\/bin\/env python/\/usr\/bin\/env python3/g' shell/linux/tools/reicast-joyconfig.py
-cd shell/linux && make %{?_smp_mflags}
+sed -i 's/\/usr\/bin\/env python/\/usr\/bin\/python3/g' shell/linux/tools/reicast-joyconfig.py
+cd shell/linux && %make_build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-cd shell/linux && make install PREFIX=/usr DESTDIR=$RPM_BUILD_ROOT
+cd shell/linux && %make_install PREFIX=%{_prefix}
 
-%clean
-rm -rf %{buildroot}
+%check
+desktop-file-validate %{buildroot}/%{_datadir}/applications/reicast.desktop
 
 %files
 %{_bindir}/%{name}
 %{_bindir}/%{name}-joyconfig
-%{_datadir}/%{name}/mappings/controller_gcwz.cfg
-%{_datadir}/%{name}/mappings/controller_generic.cfg
-%{_datadir}/%{name}/mappings/controller_pandora.cfg
-%{_datadir}/%{name}/mappings/controller_xboxdrv.cfg
-%{_datadir}/%{name}/mappings/controller_xpad.cfg
-%{_datadir}/%{name}/mappings/keyboard.cfg
-%{_mandir}/man1/reicast.1.gz
-%{_mandir}/man1/reicast-joyconfig.1.gz
+%{_datadir}/%{name}
+%{_mandir}/man1/reicast.1.*
+%{_mandir}/man1/reicast-joyconfig.1.*
 %{_datadir}/applications/reicast.desktop
 %{_datadir}/pixmaps/reicast.png
+
+%changelog
+* Thu May 09 18:00:00 CEST 2019 David Guillen Fandos <david@davidgf.net> - 8.1-1
+- First Fedora released based on reicast-r8.1 version (1a09ccb)
 
